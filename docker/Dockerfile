@@ -1,34 +1,105 @@
-ARG BASE_IMAGE=python:3.8-slim-bullseye
+##
+#  Generic dockerfile for dbt image building.  
+#  See README for operational details
+##
 
-FROM $BASE_IMAGE
-ARG BASE_REQUIREMENTS_SRC_PATH
-ARG WHEEL_REQUIREMENTS_SRC_PATH
-ARG DIST_PATH
+##
+# base image (abstract)
+##
+FROM python:3.9-slim-bullseye as base
 
+# Build args
+# TODO: Can we automate this so it doesn't need to be updated with each major rev?
+# N.B. dbt-postgres is currently found in the core codebase so a value of dbt-core@1.0.latest is correct
+ARG dbt_core_ref=dbt-core@1.0.latest
+ARG dbt_postgres_ref=dbt-core@1.0.latest
+ARG dbt_redshift_ref=dbt-redshift@1.0.latest
+ARG dbt_bigquery_ref=dbt-bigquery@1.0.latest
+ARG dbt_snowflake_ref=dbt-snowflake@1.0.latest
+ARG dbt_spark_ref=dbt-spark@1.0.latest
+
+# System setup
 RUN apt-get update \
   && apt-get dist-upgrade -y \
   && apt-get install -y --no-install-recommends \
-  git \
-  ssh-client \
-  software-properties-common \
-  make \
-  build-essential \
-  ca-certificates \
-  libpq-dev \
+    git \
+    ssh-client \
+    software-properties-common \
+    make \
+    build-essential \
+    ca-certificates \
+    libpq-dev \
   && apt-get clean \
-  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+  && rm -rf \
+    /var/lib/apt/lists/* \
+    /tmp/* \
+    /var/tmp/*
 
-RUN echo BASE_REQUIREMENTS_SRC_PATH=$BASE_REQUIREMENTS_SRC_PATH
-RUN echo WHEEL_REQUIREMENTS_SRC_PATH=$WHEEL_REQUIREMENTS_SRC_PATH
-RUN echo DIST_PATH=$DIST_PATH
-COPY $BASE_REQUIREMENTS_SRC_PATH ./requirements.txt
-COPY $WHEEL_REQUIREMENTS_SRC_PATH ./wheel_requirements.txt
-COPY $DIST_PATH ./dist
-RUN pip install --upgrade pip setuptools
-RUN pip install --requirement ./requirements.txt
-RUN pip install --requirement ./wheel_requirements.txt
+# Env vars
 ENV PYTHONIOENCODING=utf-8
-ENV LANG C.UTF-8
-WORKDIR /usr/app
+ENV LANG=C.UTF-8
+
+# Update python
+RUN python -m pip install --upgrade pip setuptools --no-cache-dir
+
+# Set docker basics
+WORKDIR /usr/app/dbt/
 VOLUME /usr/app
 ENTRYPOINT ["dbt"]
+
+##
+# dbt-core
+##
+FROM base as dbt-core
+RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_core_ref}#egg=dbt-core&subdirectory=core" --no-cache-dir
+
+##
+# dbt-postgres
+##
+FROM base as dbt-postgres
+RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_postgres_ref}#egg=dbt-postgres&subdirectory=plugins/postgres" --no-cache-dir
+RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_core_ref}#egg=dbt-core&subdirectory=core" --no-cache-dir
+
+
+##
+# dbt-redshift
+##
+FROM base as dbt-redshift
+RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_redshift_ref}#egg=dbt-redshift" --no-cache-dir
+RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_core_ref}#egg=dbt-core&subdirectory=core" --no-cache-dir
+
+##
+# dbt-bigquery
+##
+FROM base as dbt-bigquery
+RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_bigquery_ref}#egg=dbt-bigquery" --no-cache-dir
+RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_core_ref}#egg=dbt-core&subdirectory=core" --no-cache-dir
+
+
+##
+# dbt-snowflake
+##
+FROM base as dbt-snowflake
+RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_snowflake_ref}#egg=dbt-snowflake" --no-cache-dir
+RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_core_ref}#egg=dbt-core&subdirectory=core" --no-cache-dir
+
+
+##
+# dbt-spark
+##
+FROM base as dbt-spark
+RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_spark_ref}#egg=dbt-spark" --no-cache-dir
+RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_core_ref}#egg=dbt-core&subdirectory=core" --no-cache-dir
+
+
+##
+# dbt-all
+##
+FROM base as dbt-all
+RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_postgres_ref}#egg=dbt-postgres&subdirectory=plugins/postgres" --no-cache-dir
+RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_redshift_ref}#egg=dbt-redshift" --no-cache-dir
+RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_bigquery_ref}#egg=dbt-bigquery" --no-cache-dir
+RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_snowflake_ref}#egg=dbt-snowflake" --no-cache-dir
+RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_spark_ref}#egg=dbt-spark" --no-cache-dir
+RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_core_ref}#egg=dbt-core&subdirectory=core" --no-cache-dir
+
