@@ -41,10 +41,10 @@ To build an image named "my-other-dbt" that supports bigquery using core version
 ```
 cd dbt-core/docker
 docker build \
---tag my-other-dbt  \
---target dbt-bigquery \
---build-arg dbt_bigquery_ref=dbt-bigquery@v1.0.0b1 \
---build-arg dbt_core_ref=dbt-core@0.21.latest  \
+  --tag my-other-dbt  \
+  --target dbt-bigquery \
+  --build-arg dbt_bigquery_ref=dbt-bigquery@v1.0.0b1 \
+  --build-arg dbt_core_ref=dbt-core@0.21.latest  \
 .
 ```
 
