@@ -21,7 +21,6 @@ ARG dbt_spark_version=all
 ARG dbt_third_party
 
 # System setup
-# TODO: python-dev libsasl2-dev gcc unixodbc-dev are only needed for spark... make more selective
 RUN apt-get update \
   && apt-get dist-upgrade -y \
   && apt-get install -y --no-install-recommends \
@@ -32,10 +31,6 @@ RUN apt-get update \
     build-essential \
     ca-certificates \
     libpq-dev \
-    python-dev \
-    libsasl2-dev \
-    gcc \
-    unixodbc-dev \
   && apt-get clean \
   && rm -rf \
     /var/lib/apt/lists/* \
@@ -95,6 +90,19 @@ RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_core_ref}#egg=d
 # dbt-spark
 ##
 FROM base as dbt-spark
+RUN apt-get update \
+  && apt-get dist-upgrade -y \
+  && apt-get install -y --no-install-recommends \
+    python-dev \
+    libsasl2-dev \
+    gcc \
+    unixodbc-dev \
+  && apt-get clean \
+  && rm -rf \
+    /var/lib/apt/lists/* \
+    /tmp/* \
+    /var/tmp/*
+
 RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_spark_ref}#egg=dbt-spark[${dbt_spark_version}]" --no-cache-dir
 RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_core_ref}#egg=dbt-core&subdirectory=core" --no-cache-dir
 
