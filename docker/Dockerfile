@@ -17,8 +17,10 @@ ARG dbt_redshift_ref=dbt-redshift@1.0.latest
 ARG dbt_bigquery_ref=dbt-bigquery@1.0.latest
 ARG dbt_snowflake_ref=dbt-snowflake@1.0.latest
 ARG dbt_spark_ref=dbt-spark@1.0.latest
+ARG dbt_spark_version=all
 
 # System setup
+# TODO: python-dev libsasl2-dev gcc unixodbc-dev are only needed for spark... make more selective
 RUN apt-get update \
   && apt-get dist-upgrade -y \
   && apt-get install -y --no-install-recommends \
@@ -29,6 +31,10 @@ RUN apt-get update \
     build-essential \
     ca-certificates \
     libpq-dev \
+    python-dev \
+    libsasl2-dev \
+    gcc \
+    unixodbc-dev \
   && apt-get clean \
   && rm -rf \
     /var/lib/apt/lists/* \
@@ -88,7 +94,7 @@ RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_core_ref}#egg=d
 # dbt-spark
 ##
 FROM base as dbt-spark
-RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_spark_ref}#egg=dbt-spark" --no-cache-dir
+RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_spark_ref}#egg=dbt-spark[${dbt_spark_version}]" --no-cache-dir
 RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_core_ref}#egg=dbt-core&subdirectory=core" --no-cache-dir
 
 
@@ -100,6 +106,6 @@ RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_postgres_ref}#e
 RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_redshift_ref}#egg=dbt-redshift" --no-cache-dir
 RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_bigquery_ref}#egg=dbt-bigquery" --no-cache-dir
 RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_snowflake_ref}#egg=dbt-snowflake" --no-cache-dir
-RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_spark_ref}#egg=dbt-spark" --no-cache-dir
+RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_spark_ref}#egg=dbt-spark[${dbt_spark_version}]" --no-cache-dir
 RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_core_ref}#egg=dbt-core&subdirectory=core" --no-cache-dir
 

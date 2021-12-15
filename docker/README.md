@@ -47,6 +47,9 @@ docker build \
   --build-arg dbt_core_ref=dbt-core@0.21.latest  \
 .
 ```
+## Special cases
+There are a few special cases worth noting:
+* The `dbt-spark` database adapter comes in three different flavors named `PyHive`, `ODBC`, and the default `all`.  If you wish to overide this you can use the `--build-arg` flag with the value of `dbt_spark_version=<flavor_name>`.  See the [docs](https://docs.getdbt.com/reference/warehouse-profiles/spark-profile) for more information.
 
 ## Running an image in a container:
 The `ENTRYPOINT` for this Dockerfile is the command `dbt` so you simply bind-mount your project to `/usr/app` and use dbt as normal:
