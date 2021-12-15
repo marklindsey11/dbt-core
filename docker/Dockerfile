@@ -9,8 +9,6 @@
 FROM python:3.9-slim-bullseye as base
 
 # Build args
-# TODO: Can we automate this so it doesn't need to be updated with each major rev?
-# N.B. dbt-postgres is currently found in the core codebase so a value of dbt-core@1.0.latest is correct
 ARG dbt_core_ref=dbt-core@1.0.latest
 ARG dbt_postgres_ref=dbt-core@1.0.latest
 ARG dbt_redshift_ref=dbt-redshift@1.0.latest
