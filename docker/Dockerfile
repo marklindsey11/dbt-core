@@ -18,6 +18,7 @@ ARG dbt_bigquery_ref=dbt-bigquery@1.0.latest
 ARG dbt_snowflake_ref=dbt-snowflake@1.0.latest
 ARG dbt_spark_ref=dbt-spark@1.0.latest
 ARG dbt_spark_version=all
+ARG dbt_third_party
 
 # System setup
 # TODO: python-dev libsasl2-dev gcc unixodbc-dev are only needed for spark... make more selective
@@ -95,6 +96,14 @@ RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_core_ref}#egg=d
 ##
 FROM base as dbt-spark
 RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_spark_ref}#egg=dbt-spark[${dbt_spark_version}]" --no-cache-dir
+RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_core_ref}#egg=dbt-core&subdirectory=core" --no-cache-dir
+
+
+##
+# dbt-third-party
+##
+FROM base as dbt-third-party
+RUN python -m pip install "${dbt_third_party}" --no-cache-dir
 RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_core_ref}#egg=dbt-core&subdirectory=core" --no-cache-dir
 
 
