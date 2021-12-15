@@ -10,23 +10,35 @@ This Dockerfile can create images for the following targets, each named after th
 * `dbt-bigquery`
 * `dbt-snowflake`
 * `dbt-spark`
+* `dbt-third-party` _(requires additional build-arg)_
 * `dbt-all` _(installs all of the above in a single image)_
 
 In order to build a new image, run the following docker command.
 ```
 docker build --tag <your_image_name>  --target <target_name> <path/to/dockerfile>
 ```
-By default the images will be populated with the most recent stable version of `dbt-core` and whatever database adapter you select.  If you need to create an image from a different you can specify it by git ref using the `--build-arg` flag like so:
+By default the images will be populated with the most recent stable version of `dbt-core` and whatever database adapter you select.  If you need to create an image from a different you can specify it by git ref using the `--build-arg` flag:
 ```
-docker build --tag <your_image_name>  --target <target_name> --build-arg <arg_name>=<git_ref> <path/to/dockerfile>
+docker build --tag <your_image_name> \
+  --target <target_name> \
+  --build-arg <arg_name>=<git_ref> \
+  <path/to/dockerfile>
 ```
-valid arg names are:
+valid arg names for versioning are:
 * `dbt_core_ref`
 * `dbt_postgres_ref`
 * `dbt_redshift_ref`
 * `dbt_bigquery_ref`
 * `dbt_snowflake_ref`
 * `dbt_spark_ref`
+
+If you wish to build an image with a third-party adapter you can use the `dbt-third-party` target.  This target requires you provide a path to the adapter that can be processed by `pip` by using the `dbt_third_party` build arg:
+```
+docker build --tag <your_image_name> \
+  --target dbt-third-party \ 
+  --build-arg dbt_third_party=<pip_parsable_install_string> \ 
+  <path/to/dockerfile>
+```
 
 > Note: By overiding build args it is very possible to build an image with incompatible versions of adapter and core!  TODO: provide compatibility matrix or other instructions to determine corectness of versions.
 
@@ -37,7 +49,7 @@ cd dbt-core/docker
 docker build --tag my-dbt  --target dbt-redshift .
 ```
 
-To build an image named "my-other-dbt" that supports bigquery using core version 0.21.latest and the bigquery adapter version 1.0.0b1:
+To build an image named "my-other-dbt" that supports bigquery using `dbt-core` version 0.21.latest and the bigquery adapter version 1.0.0b1:
 ```
 cd dbt-core/docker
 docker build \
@@ -45,8 +57,18 @@ docker build \
   --target dbt-bigquery \
   --build-arg dbt_bigquery_ref=dbt-bigquery@v1.0.0b1 \
   --build-arg dbt_core_ref=dbt-core@0.21.latest  \
-.
+ .
 ```
+
+To build an image named "my-third-party-dbt" that uses [Materilize third party adapter](https://github.com/MaterializeInc/materialize/tree/main/misc/dbt-materialize) and the latest version of `dbt-core`:
+```
+cd dbt-core/docker
+docker build --tag my-third-party-dbt \
+  --target dbt-third-party \
+  --build-arg dbt_third_party=dbt-materialize \
+  .
+```
+
 ## Special cases
 There are a few special cases worth noting:
 * The `dbt-spark` database adapter comes in three different flavors named `PyHive`, `ODBC`, and the default `all`.  If you wish to overide this you can use the `--build-arg` flag with the value of `dbt_spark_version=<flavor_name>`.  See the [docs](https://docs.getdbt.com/reference/warehouse-profiles/spark-profile) for more information.
@@ -57,4 +79,3 @@ The `ENTRYPOINT` for this Dockerfile is the command `dbt` so you simply bind-mou
 docker run --mount type=bind,source=path/to/project,target=/usr/app my-dbt ls
 ```
 > Note: bind-mount sources _must_ be an absolute path
-
