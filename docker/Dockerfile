@@ -9,12 +9,13 @@
 FROM python:3.9-slim-bullseye as base
 
 # Build args
-ARG dbt_core_ref=dbt-core@1.0.latest
-ARG dbt_postgres_ref=dbt-core@1.0.latest
-ARG dbt_redshift_ref=dbt-redshift@1.0.latest
-ARG dbt_bigquery_ref=dbt-bigquery@1.0.latest
-ARG dbt_snowflake_ref=dbt-snowflake@1.0.latest
-ARG dbt_spark_ref=dbt-spark@1.0.latest
+# N.B. The refs updated automagically every release via bumpversion
+ARG dbt_core_ref=dbt-core@v1.0.0
+ARG dbt_postgres_ref=dbt-core@v1.0.0
+ARG dbt_redshift_ref=dbt-redshift@v1.0.0
+ARG dbt_bigquery_ref=dbt-bigquery@v1.0.0
+ARG dbt_snowflake_ref=dbt-snowflake@v1.0.0
+ARG dbt_spark_ref=dbt-spark@v1.0.0
 ARG dbt_spark_version=all
 ARG dbt_third_party
 

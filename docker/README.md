@@ -17,7 +17,7 @@ In order to build a new image, run the following docker command.
 ```
 docker build --tag <your_image_name>  --target <target_name> <path/to/dockerfile>
 ```
-By default the images will be populated with the most recent stable version of `dbt-core` and whatever database adapter you select.  If you need to create an image from a different you can specify it by git ref using the `--build-arg` flag:
+By default the images will be populated with the most recent release of `dbt-core` and whatever database adapter you select.  If you need to create an image from a different you can specify it by git ref using the `--build-arg` flag:
 ```
 docker build --tag <your_image_name> \
   --target <target_name> \
@@ -40,10 +40,12 @@ docker build --tag <your_image_name> \
   <path/to/dockerfile>
 ```
 
-> Note: By overiding build args it is very possible to build an image with incompatible versions of adapter and core!  TODO: provide compatibility matrix or other instructions to determine corectness of versions.
+> Note: By overiding build args it is very possible to build an image with incompatible versions of adapter and core!  
+>
+>TODO: Provide compatibility matrix or other instructions to determine corectness of versions.
 
 ### Examples:
-To build an image named "my-dbt" that supports redshift using the latest versions:
+To build an image named "my-dbt" that supports redshift using the latest releases:
 ```
 cd dbt-core/docker
 docker build --tag my-dbt  --target dbt-redshift .
@@ -60,7 +62,7 @@ docker build \
  .
 ```
 
-To build an image named "my-third-party-dbt" that uses [Materilize third party adapter](https://github.com/MaterializeInc/materialize/tree/main/misc/dbt-materialize) and the latest version of `dbt-core`:
+To build an image named "my-third-party-dbt" that uses [Materilize third party adapter](https://github.com/MaterializeInc/materialize/tree/main/misc/dbt-materialize) and the latest release of `dbt-core`:
 ```
 cd dbt-core/docker
 docker build --tag my-third-party-dbt \
@@ -71,10 +73,10 @@ docker build --tag my-third-party-dbt \
 
 ## Special cases
 There are a few special cases worth noting:
-* The `dbt-spark` database adapter comes in three different flavors named `PyHive`, `ODBC`, and the default `all`.  If you wish to overide this you can use the `--build-arg` flag with the value of `dbt_spark_version=<flavor_name>`.  See the [docs](https://docs.getdbt.com/reference/warehouse-profiles/spark-profile) for more information.
+* The `dbt-spark` database adapter comes in three different versions named `PyHive`, `ODBC`, and the default `all`.  If you wish to overide this you can use the `--build-arg` flag with the value of `dbt_spark_version=<version_name>`.  See the [docs](https://docs.getdbt.com/reference/warehouse-profiles/spark-profile) for more information.
 
 ## Running an image in a container:
-The `ENTRYPOINT` for this Dockerfile is the command `dbt` so you simply bind-mount your project to `/usr/app` and use dbt as normal:
+The `ENTRYPOINT` for this Dockerfile is the command `dbt` so you can bind-mount your project to `/usr/app` and use dbt as normal:
 ```
 docker run --mount type=bind,source=path/to/project,target=/usr/app my-dbt ls
 ```
