@@ -58,32 +58,36 @@ RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_core_ref}#egg=d
 # dbt-postgres
 ##
 FROM base as dbt-postgres
-RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_postgres_ref}#egg=dbt-postgres&subdirectory=plugins/postgres" --no-cache-dir
-RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_core_ref}#egg=dbt-core&subdirectory=core" --no-cache-dir
+RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_postgres_ref}#egg=dbt-postgres&subdirectory=plugins/postgres" \
+  && python -m pip install "git+https://github.com/dbt-labs/${dbt_core_ref}#egg=dbt-core&subdirectory=core" \
+  && pip cache purge
 
 
 ##
 # dbt-redshift
 ##
 FROM base as dbt-redshift
-RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_redshift_ref}#egg=dbt-redshift" --no-cache-dir
-RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_core_ref}#egg=dbt-core&subdirectory=core" --no-cache-dir
+RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_redshift_ref}#egg=dbt-redshift" \
+  && python -m pip install "git+https://github.com/dbt-labs/${dbt_core_ref}#egg=dbt-core&subdirectory=core" \
+  && pip cache purge
+
 
 ##
 # dbt-bigquery
 ##
 FROM base as dbt-bigquery
-RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_bigquery_ref}#egg=dbt-bigquery" --no-cache-dir
-RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_core_ref}#egg=dbt-core&subdirectory=core" --no-cache-dir
+RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_bigquery_ref}#egg=dbt-bigquery" \
+  && python -m pip install "git+https://github.com/dbt-labs/${dbt_core_ref}#egg=dbt-core&subdirectory=core" \
+  && pip cache purge
 
 
 ##
 # dbt-snowflake
 ##
 FROM base as dbt-snowflake
-RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_snowflake_ref}#egg=dbt-snowflake" --no-cache-dir
-RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_core_ref}#egg=dbt-core&subdirectory=core" --no-cache-dir
-
+RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_snowflake_ref}#egg=dbt-snowflake" \
+  && python -m pip install "git+https://github.com/dbt-labs/${dbt_core_ref}#egg=dbt-core&subdirectory=core" \
+  && pip cache purge
 
 ##
 # dbt-spark
@@ -100,28 +104,42 @@ RUN apt-get update \
   && rm -rf \
     /var/lib/apt/lists/* \
     /tmp/* \
-    /var/tmp/*
-
-RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_spark_ref}#egg=dbt-spark[${dbt_spark_version}]" --no-cache-dir
-RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_core_ref}#egg=dbt-core&subdirectory=core" --no-cache-dir
+    /var/tmp/* \
+  && python -m pip install "git+https://github.com/dbt-labs/${dbt_spark_ref}#egg=dbt-spark[${dbt_spark_version}]" \
+  && python -m pip install "git+https://github.com/dbt-labs/${dbt_core_ref}#egg=dbt-core&subdirectory=core" \
+  && pip cache purge
 
 
 ##
 # dbt-third-party
 ##
 FROM base as dbt-third-party
-RUN python -m pip install "${dbt_third_party}" --no-cache-dir
-RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_core_ref}#egg=dbt-core&subdirectory=core" --no-cache-dir
+RUN python -m pip install "${dbt_third_party}" \
+  && python -m pip install "git+https://github.com/dbt-labs/${dbt_core_ref}#egg=dbt-core&subdirectory=core" \
+  && pip cache purge
 
 
 ##
 # dbt-all
 ##
 FROM base as dbt-all
-RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_postgres_ref}#egg=dbt-postgres&subdirectory=plugins/postgres" --no-cache-dir
-RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_redshift_ref}#egg=dbt-redshift" --no-cache-dir
-RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_bigquery_ref}#egg=dbt-bigquery" --no-cache-dir
-RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_snowflake_ref}#egg=dbt-snowflake" --no-cache-dir
-RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_spark_ref}#egg=dbt-spark[${dbt_spark_version}]" --no-cache-dir
-RUN python -m pip install "git+https://github.com/dbt-labs/${dbt_core_ref}#egg=dbt-core&subdirectory=core" --no-cache-dir
+RUN apt-get update \
+  && apt-get dist-upgrade -y \
+  && apt-get install -y --no-install-recommends \
+    python-dev \
+    libsasl2-dev \
+    gcc \
+    unixodbc-dev \
+  && apt-get clean \
+  && rm -rf \
+    /var/lib/apt/lists/* \
+    /tmp/* \
+    /var/tmp/* \
+  && python -m pip install "git+https://github.com/dbt-labs/${dbt_postgres_ref}#egg=dbt-postgres&subdirectory=plugins/postgres" \
+  && python -m pip install "git+https://github.com/dbt-labs/${dbt_redshift_ref}#egg=dbt-redshift" \
+  && python -m pip install "git+https://github.com/dbt-labs/${dbt_bigquery_ref}#egg=dbt-bigquery" \
+  && python -m pip install "git+https://github.com/dbt-labs/${dbt_snowflake_ref}#egg=dbt-snowflake" \
+  && python -m pip install "git+https://github.com/dbt-labs/${dbt_spark_ref}#egg=dbt-spark[${dbt_spark_version}]" \
+  && python -m pip install "git+https://github.com/dbt-labs/${dbt_core_ref}#egg=dbt-core&subdirectory=core" \
+  pip cache purge
 
