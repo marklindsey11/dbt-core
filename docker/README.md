@@ -78,6 +78,13 @@ There are a few special cases worth noting:
 ## Running an image in a container:
 The `ENTRYPOINT` for this Dockerfile is the command `dbt` so you can bind-mount your project to `/usr/app` and use dbt as normal:
 ```
-docker run --mount type=bind,source=path/to/project,target=/usr/app my-dbt ls
+docker run \
+--network=host
+--mount type=bind,source=path/to/project,target=/usr/app \
+--mount type=bind,source=path/to/profiles.yml,target=/root/.dbt/ \
+my-dbt \
+ls
 ```
-> Note: bind-mount sources _must_ be an absolute path
+> Notes: 
+> * Bind-mount sources _must_ be an absolute path
+> * You may need to make adjustments to the docker networking setting depending on the specifics of your data warehouse/database host.
