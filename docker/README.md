@@ -17,7 +17,7 @@ In order to build a new image, run the following docker command.
 ```
 docker build --tag <your_image_name>  --target <target_name> <path/to/dockerfile>
 ```
-By default the images will be populated with the most recent release of `dbt-core` and whatever database adapter you select.  If you need to create an image from a different you can specify it by git ref using the `--build-arg` flag:
+By default the images will be populated with the most recent release of `dbt-core` and whatever database adapter you select.  If you need to use a different version you can specify it by git ref using the `--build-arg` flag:
 ```
 docker build --tag <your_image_name> \
   --target <target_name> \
@@ -32,6 +32,8 @@ valid arg names for versioning are:
 * `dbt_snowflake_ref`
 * `dbt_spark_ref`
 
+> Note: Only overide a _single_ build arg for each build. Using multiple overides may lead to a non-functioning image.
+
 If you wish to build an image with a third-party adapter you can use the `dbt-third-party` target.  This target requires you provide a path to the adapter that can be processed by `pip` by using the `dbt_third_party` build arg:
 ```
 docker build --tag <your_image_name> \
@@ -39,10 +41,6 @@ docker build --tag <your_image_name> \
   --build-arg dbt_third_party=<pip_parsable_install_string> \ 
   <path/to/dockerfile>
 ```
-
-> Note: By overiding build args it is very possible to build an image with incompatible versions of adapter and core!  
->
->TODO: Provide compatibility matrix or other instructions to determine corectness of versions.
 
 ### Examples:
 To build an image named "my-dbt" that supports redshift using the latest releases:
@@ -71,9 +69,27 @@ docker build --tag my-third-party-dbt \
   .
 ```
 
+
 ## Special cases
 There are a few special cases worth noting:
 * The `dbt-spark` database adapter comes in three different versions named `PyHive`, `ODBC`, and the default `all`.  If you wish to overide this you can use the `--build-arg` flag with the value of `dbt_spark_version=<version_name>`.  See the [docs](https://docs.getdbt.com/reference/warehouse-profiles/spark-profile) for more information.
+
+* The `dbt-postgres` database adapter is released as part of the `dbt-core` codebase.  If you wish to overide the version used, make sure you use the gitref for `dbt-core`: 
+```
+docker build --tag my_dbt \
+  --target dbt-postgres \
+  --build-arg dbt_postgres_ref=dbt-core@1.0.0b1 \
+  <path/to/dockerfile> \
+  ```
+
+* If you need to build against another architecture (linux/arm64 in this example) you can overide the `build_for` build arg:
+```
+docker build --tag my_dbt \
+  --target dbt-postgres \
+  --build-arg build_for=linux/arm64 \
+  <path/to/dockerfile> \
+  ```
+Supported architectures can be found in the python docker [dockerhub page](https://hub.docker.com/_/python).
 
 ## Running an image in a container:
 The `ENTRYPOINT` for this Dockerfile is the command `dbt` so you can bind-mount your project to `/usr/app` and use dbt as normal:
