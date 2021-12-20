@@ -108,10 +108,29 @@ echo "\n\n"\
 
 echo "\n\n"\
 "#####################################\n"\
-"##### Testing dbt-spark-1.0.0rc2 #####\n"\
+"##### Testing dbt-spark-1.0.0rc2 ####\n"\
 "#####################################\n"\
 && docker build --quiet --tag dbt-spark-1.0.0rc2 \
   --target dbt-spark \
   --build-arg dbt_spark_ref=dbt-spark@v1.0.0rc2 \
   docker \
-&& docker run dbt-spark-1.0.0rc2 --version
+&& docker run dbt-spark-1.0.0rc2 --version \
+
+echo "\n\n"\
+"###########################\n"\
+"##### Testing dbt-all #####\n"\
+"###########################\n"\
+&& docker build --quiet --tag dbt-all \
+  --target dbt-all \
+  docker \
+&& docker run dbt-all --version \
+
+echo "\n\n"\
+"##########################################\n"\
+"##### Testing third party db adapter #####\n"\
+"##########################################\n"\
+&& docker build --quiet --tag dbt-materialize \
+  --target dbt-third-party \
+  --build-arg dbt_third_party=dbt-materialize \
+  docker \
+&& docker run dbt-materialize --version
