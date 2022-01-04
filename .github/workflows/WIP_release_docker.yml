@@ -1,0 +1,50 @@
+# **what?**
+# This workflow will generate a series of docker images for dbt and push them to the github container registry
+
+# **why?**
+# Docker images for dbt are used in a number of important places throughout the dbt ecosystem.  This is how we keep those images up-to-date.
+
+# **when?**
+# This is triggered manually 
+# TODO: build this into the release workflow (or conversly, break out the different release methods into their own workflow files)
+
+name: Release Docker Images to GHCR
+
+on:
+  workflow_dispatch:
+  # TODO:  Check with @leahwicz about wether or not this is the best `on` criteria
+  # release:
+  #   types: [published]
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  release-docker:
+    name: Build and push dbt docker images to GHCR
+    runs-on: ubuntu-latest
+    steps:
+    #  QEMU is optional-- supports better x-platform building
+    #  - name: Set up QEMU
+    #    uses: docker/setup-qemu-action@v1
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      
+      - name: Log in to the GHCR
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      # TODO 
+      # - name: Determine build matrix
+      
+      - name: Build and push Docker images
+        uses: docker/build-push-action@v2
+        with:
+          context: /docker/.
+          push: true
+          #tags: ${{ steps.meta.outputs.tags }}
+          #labels: ${{ steps.meta.outputs.labels }}
