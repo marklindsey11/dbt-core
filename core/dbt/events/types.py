@@ -707,6 +707,16 @@ class DumpBeforeAddGraph(DebugLevel, Cache):
     def message(self) -> str:
         return f"before adding : {self.dump.value()}"
 
+    @classmethod
+    def asdict(cls, data: list) -> dict:
+        d = dict()
+        for k, v in data:
+            if type(v) == Lazy:
+                d[k] = v.value()
+            else:
+                d[k] = v
+        return d
+
 
 @dataclass
 class DumpAfterAddGraph(DebugLevel, Cache):
@@ -715,6 +725,16 @@ class DumpAfterAddGraph(DebugLevel, Cache):
 
     def message(self) -> str:
         return f"after adding: {self.dump.value()}"
+
+    @classmethod
+    def asdict(cls, data: list) -> dict:
+        d = dict()
+        for k, v in data:
+            if type(v) == Lazy:
+                d[k] = v.value()
+            else:
+                d[k] = v
+        return d
 
 
 @dataclass
@@ -725,6 +745,16 @@ class DumpBeforeRenameSchema(DebugLevel, Cache):
     def message(self) -> str:
         return f"before rename: {self.dump.value()}"
 
+    @classmethod
+    def asdict(cls, data: list) -> dict:
+        d = dict()
+        for k, v in data:
+            if type(v) == Lazy:
+                d[k] = v.value()
+            else:
+                d[k] = v
+        return d
+
 
 @dataclass
 class DumpAfterRenameSchema(DebugLevel, Cache):
@@ -733,6 +763,16 @@ class DumpAfterRenameSchema(DebugLevel, Cache):
 
     def message(self) -> str:
         return f"after rename: {self.dump.value()}"
+
+    @classmethod
+    def asdict(cls, data: list) -> dict:
+        d = dict()
+        for k, v in data:
+            if type(v) == Lazy:
+                d[k] = v.value()
+            else:
+                d[k] = v
+        return d
 
 
 @dataclass
