@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from datetime import datetime
 import os
 import threading
-from typing import Any, Optional
+from typing import Any, Callable, Optional
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # These base types define the _required structure_ for the concrete event #
@@ -107,6 +107,11 @@ class Event(metaclass=ABCMeta):
             # stringify all exceptions
             if isinstance(v, Exception) or isinstance(v, BaseException):
                 d[k] = str(v)
+            # use memoized version of all lazy values
+            elif k == '_f' and isinstance(v, Callable):  # type: ignore[arg-type]
+                d[k] = v()
+            elif k == 'memo' and v is None:
+                continue
             # skip all binary data
             elif isinstance(v, bytes):
                 continue
