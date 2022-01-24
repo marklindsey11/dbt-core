@@ -10,6 +10,7 @@ from dbt.events.stubs import _CachedRelation, BaseRelation, _ReferenceKey, Parse
 from importlib import reload
 import dbt.events.functions as event_funcs
 import dbt.flags as flags
+from dbt.lazy import Lazy
 import inspect
 import json
 from unittest import TestCase
@@ -467,15 +468,48 @@ class SkipsRenderingCacheEvents(TestCase):
 
         # counter of zero means this potentially expensive function
         # (emulating dump_graph) has never been called
-        assert(e.counter.count == 0)
+        self.assertTrue(e.counter.count == 0)
 
         # call fire_event
         event_funcs.fire_event(e)
 
         # assert that the expensive function has STILL not been called
-        assert(e.counter.count == 0)
+        self.assertTrue(e.counter.count == 0)
 
-    # def test_all_cache_events_are_lazy(self):
-    #     cache_events = get_all_subclasses(Cache)
-    #     for clazz in cache_events
-    #         e = clazz.__init__(Lazy.defer(lambda: Counter))
+    # this test checks that every subclass of `Cache` uses the same lazy evaluation 
+    # strategy. This ensures that potentially expensive cache event values are not
+    # built unless they are needed for logging purposes. It also checks that these
+    # potentially expensive values are cached, and not evaluated more than once.
+    def test_all_cache_events_are_lazy(self):
+        cache_events = get_all_subclasses(Cache)
+        for clazz in cache_events:
+            # this body assumes every subclass of `Cache` takes exactly one dictionary value
+            # if you just added a cache event that is different, just branch
+            # inside this for loop for your even vs the others.
+            
+            # initialize the counter to return a dictionary (emulating dump_graph)
+            counter = Counter(dict())
+
+            # assert that the counter starts at 0
+            self.assertTrue(counter.count == 0)
+
+            # create the cache event to use this counter type
+            e = clazz.__init__(Lazy.defer(lambda: counter))
+
+            # assert that initializing the event with the counter
+            # did not evaluate the lazy value
+            self.assertTrue(counter.count == 0)
+
+            # log an event which should trigger evaluation and up
+            # the counter
+            event_funcs.fire_event(e)
+
+            # assert that the counter did, in fact, increase
+            self.assertTrue(counter.count == 1)
+
+            # fire another event which should reuse the previous value
+            # not evaluate the function again
+            event_funcs.fire_event(e)
+
+            # assert that the counter did not, in fact, increase
+            self.assertTrue(counter.count == 1)
