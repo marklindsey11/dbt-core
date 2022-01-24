@@ -19,6 +19,7 @@ from dbt.contracts.graph.parsed import (
 )
 from dbt.contracts.files import FileHash
 from typing import Generic, TypeVar
+from test.unit.test_events import DummyCacheEvent
 
 # takes in a class and finds any subclasses for it
 def get_all_subclasses(cls):
@@ -415,7 +416,9 @@ class TestEventJSONSerialization(TestCase):
     # event types that take `Any` are not possible to test in this way since some will serialize
     # just fine and others won't.
     def test_all_serializable(self):
-        all_non_abstract_events = set(filter(lambda x: not inspect.isabstract(x), get_all_subclasses(Event)))
+        no_test = [DummyCacheEvent]
+
+        all_non_abstract_events = set(filter(lambda x: not inspect.isabstract(x) and not in no_test, get_all_subclasses(Event)))
         all_event_values_list = list(map(lambda x: x.__class__, sample_values))
         diff = all_non_abstract_events.difference(set(all_event_values_list))
         self.assertFalse(diff, f"test is missing concrete values in `sample_values`. Please add the values for the aforementioned event classes")
