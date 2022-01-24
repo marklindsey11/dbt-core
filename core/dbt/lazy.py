@@ -40,6 +40,6 @@ class Lazy(Generic[T]):
             return self.memo
 
     # forces evaluation skipping the memoization.
-    # necessary for when the deferred funciton is stateful or impure.
+    # necessary for when the deferred function is stateful or impure.
     def force(self) -> T:
         return self._typed_eval_f()
