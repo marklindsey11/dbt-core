@@ -7,6 +7,7 @@ from typing import Callable, cast, Generic, Optional, TypeVar
 
 T = TypeVar('T')
 
+
 # A data type for representing lazily evaluated values. Evaluation is explicilty
 # called with either `value` for access to memoization, or `force` to skip
 # memoization.
@@ -42,4 +43,3 @@ class Lazy(Generic[T]):
     # necessary for when the deferred funciton is stateful or impure.
     def force(self) -> T:
         return self._typed_eval_f()
-    
