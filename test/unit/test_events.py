@@ -484,7 +484,6 @@ class SkipsRenderingCacheEvents(TestCase):
         cache_events = get_all_subclasses(Cache)
         for clazz in cache_events:
             # this body is only testing subclasses of `Cache` that take a param called "dump"
-            if hasattr(object, name)
 
             # initialize the counter to return a dictionary (emulating dump_graph)
             counter = Counter(dict())
