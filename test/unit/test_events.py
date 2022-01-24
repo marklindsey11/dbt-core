@@ -17,6 +17,7 @@ from dbt.contracts.graph.parsed import (
     ParsedModelNode, NodeConfig, DependsOn
 )
 from dbt.contracts.files import FileHash
+from typing import Generic, TypeVar
 
 # takes in a class and finds any subclasses for it
 def get_all_subclasses(cls):
@@ -431,13 +432,16 @@ class TestEventJSONSerialization(TestCase):
                 raise Exception(f"{event} is not serializable to json. Originating exception: {e}")
 
 
+T = TypeVar('T')
+
 @dataclass
-class Counter():
+class Counter(Generic[T]):
+    dummy_val: T
     count: int = 0
 
-    def next() -> int:
+    def next() -> T:
         self.count = self.count + 1
-        return self.count
+        return dummy_val
 
 
 @dataclass
@@ -459,14 +463,19 @@ class SkipsRenderingCacheEvents(TestCase):
     # running without `--log-cache-events`.
     def test_skip_cache_event_message_rendering(self):
         # a dummy event that extends `Cache`
-        e = DummyCacheEvent(Counter())
+        e = DummyCacheEvent(Counter("some_state"))
 
         # counter of zero means this potentially expensive function
         # (emulating dump_graph) has never been called
         assert(e.counter.count == 0)
 
         # call fire_event
-        event_funcs.fire_event(DummyCacheEvent(Counter()))
+        event_funcs.fire_event(e)
 
         # assert that the expensive function has STILL not been called
         assert(e.counter.count == 0)
+
+    # def test_all_cache_events_are_lazy(self):
+    #     cache_events = get_all_subclasses(Cache)
+    #     for clazz in cache_events
+    #         e = clazz.__init__(Lazy.defer(lambda: Counter))
