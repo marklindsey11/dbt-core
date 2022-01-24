@@ -494,7 +494,8 @@ class SkipsRenderingCacheEvents(TestCase):
             self.assertTrue(counter.count == 0)
 
             # create the cache event to use this counter type
-            e = clazz.__init__(Lazy.defer(lambda: counter))
+            print(clazz) # DEBUG
+            e = clazz.__init__(counter = Lazy.defer(lambda: counter))
 
             # assert that initializing the event with the counter
             # did not evaluate the lazy value
