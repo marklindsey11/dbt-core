@@ -33,7 +33,7 @@ class Lazy(Generic[T]):
     # gets the value from memoization or by evaluating the function.
     # good when the deferred function is pure.
     def value(self) -> T:
-        if self.memo:
+        if self.memo is not None:
             return self.memo
         else:
             self.memo = self._typed_eval_f()
