@@ -5,7 +5,7 @@ from dbt.events import AdapterLogger
 from dbt.events.functions import event_to_serializable_dict
 from dbt.events.types import *
 from dbt.events.test_types import *
-from dbt.events.base_types import Event
+from dbt.events.base_types import Event, InfoLevel
 from dbt.events.stubs import _CachedRelation, BaseRelation, _ReferenceKey, ParsedModelNode
 from importlib import reload
 import dbt.events.functions as event_funcs
@@ -429,4 +429,44 @@ class TestEventJSONSerialization(TestCase):
                 json.dumps(d)
             except TypeError as e:
                 raise Exception(f"{event} is not serializable to json. Originating exception: {e}")
-                
+
+
+@dataclass
+class Counter():
+    count: int = 0
+
+    def next() -> int:
+        self.count = self.count + 1
+        return self.count
+
+
+@dataclass
+class DummyCacheEvent(InfoLevel, Cache):
+    code = 'X999'
+    counter: Counter
+
+    def message() -> str:
+        return f"state: {self.counter.next()}"
+
+
+class SkipsRenderingCacheEvents(TestCase):
+
+    def setUp(self):
+        pass
+
+    # tests that if a cache event uses lazy evaluation for its message
+    # creation, the evaluation will not be forced for cache events when
+    # running without `--log-cache-events`.
+    def test_skip_cache_event_message_rendering(self):
+        # a dummy event that extends `Cache`
+        e = DummyCacheEvent(Counter())
+
+        # counter of zero means this potentially expensive function
+        # (emulating dump_graph) has never been called
+        assert(e.counter.count == 0)
+
+        # call fire_event
+        event_funcs.fire_event(DummyCacheEvent(Counter()))
+
+        # assert that the expensive function has STILL not been called
+        assert(e.counter.count == 0)

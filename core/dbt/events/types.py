@@ -9,6 +9,7 @@ from dbt.events.stubs import (
     RunResult
 )
 from dbt import ui
+from dbt.lazy import Lazy
 from dbt.events.base_types import (
     Event, NoFile, DebugLevel, InfoLevel, WarnLevel, ErrorLevel, ShowException,
     NodeInfo, Cache
@@ -700,41 +701,38 @@ class RenameSchema(DebugLevel, Cache):
 @dataclass
 class DumpBeforeAddGraph(DebugLevel, Cache):
     # large value. delay not necessary since every debug level message is logged anyway.
-    dump: Dict[str, List[str]]
+    dump: Lazy[Dict[str, List[str]]]
     code: str = "E031"
 
     def message(self) -> str:
-        return f"before adding : {self.dump}"
+        return f"before adding : {self.dump.value()}"
 
 
 @dataclass
 class DumpAfterAddGraph(DebugLevel, Cache):
-    # large value. delay not necessary since every debug level message is logged anyway.
-    dump: Dict[str, List[str]]
+    dump: Lazy[Dict[str, List[str]]]
     code: str = "E032"
 
     def message(self) -> str:
-        return f"after adding: {self.dump}"
+        return f"after adding: {self.dump.value()}"
 
 
 @dataclass
 class DumpBeforeRenameSchema(DebugLevel, Cache):
-    # large value. delay not necessary since every debug level message is logged anyway.
-    dump: Dict[str, List[str]]
+    dump: Lazy[Dict[str, List[str]]]
     code: str = "E033"
 
     def message(self) -> str:
-        return f"before rename: {self.dump}"
+        return f"before rename: {self.dump.value()}"
 
 
 @dataclass
 class DumpAfterRenameSchema(DebugLevel, Cache):
-    # large value. delay not necessary since every debug level message is logged anyway.
-    dump: Dict[str, List[str]]
+    dump: Lazy[Dict[str, List[str]]]
     code: str = "E034"
 
     def message(self) -> str:
-        return f"after rename: {self.dump}"
+        return f"after rename: {self.dump.value()}"
 
 
 @dataclass
@@ -2517,10 +2515,10 @@ if 1 == 0:
         old_key=_ReferenceKey(database="", schema="", identifier=""),
         new_key=_ReferenceKey(database="", schema="", identifier="")
     )
-    DumpBeforeAddGraph(dict())
-    DumpAfterAddGraph(dict())
-    DumpBeforeRenameSchema(dict())
-    DumpAfterRenameSchema(dict())
+    DumpBeforeAddGraph(Lazy.defer(lambda: dict()))
+    DumpAfterAddGraph(Lazy.defer(lambda: dict()))
+    DumpBeforeRenameSchema(Lazy.defer(lambda: dict()))
+    DumpAfterRenameSchema(Lazy.defer(lambda: dict()))
     AdapterImportError(ModuleNotFoundError())
     PluginLoadError()
     SystemReportReturnCode(returncode=0)
