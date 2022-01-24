@@ -442,9 +442,9 @@ class Counter(Generic[T]):
     dummy_val: T
     count: int = 0
 
-    def next() -> T:
+    def next(self) -> T:
         self.count = self.count + 1
-        return dummy_val
+        return self.dummy_val
 
 
 @dataclass
@@ -452,7 +452,7 @@ class DummyCacheEvent(InfoLevel, Cache):
     code = 'X999'
     counter: Counter
 
-    def message() -> str:
+    def message(self) -> str:
         return f"state: {self.counter.next()}"
 
 
@@ -470,13 +470,22 @@ class SkipsRenderingCacheEvents(TestCase):
 
         # counter of zero means this potentially expensive function
         # (emulating dump_graph) has never been called
-        self.assertTrue(e.counter.count == 0)
+        self.assertEqual(e.counter.count, 0)
 
         # call fire_event
         event_funcs.fire_event(e)
 
         # assert that the expensive function has STILL not been called
-        self.assertTrue(e.counter.count == 0)
+        self.assertEqual(e.counter.count, 0)
+
+
+class TestLazyMemoizationInCacheEvents(TestCase):
+
+    def setUp(self):
+        flags.LOG_CACHE_EVENTS = True
+
+    def tearDown(self):
+        flags.LOG_CACHE_EVENTS = False
 
     # this test checks that every subclass of `Cache` uses the same lazy evaluation 
     # strategy. This ensures that potentially expensive cache event values are not
@@ -491,31 +500,38 @@ class SkipsRenderingCacheEvents(TestCase):
             counter = Counter(dict())
 
             # assert that the counter starts at 0
-            self.assertTrue(counter.count == 0)
+            self.assertEqual(counter.count, 0)
 
             # try to create the cache event to use this counter type
             # fails for cache events that don't have a "dump" param
             try:
-                e = clazz.__init__(counter = Lazy.defer(lambda: counter))
+                clazz()
+            except TypeError as e:
+                if 'dump' in str(e):
+                    e = clazz(dump = Lazy.defer(lambda: counter))
+                    # assert that initializing the event with the counter
+                    # did not evaluate the lazy value
+                    self.assertEqual(counter.count, 0)
 
-                # assert that initializing the event with the counter
-                # did not evaluate the lazy value
-                self.assertTrue(counter.count == 0)
+                    # log an event which should trigger evaluation and up
+                    # the counter
+                    event_funcs.fire_event(e)
 
-                # log an event which should trigger evaluation and up
-                # the counter
-                event_funcs.fire_event(e)
+                    # assert that the counter did, in fact, increase
+                    self.assertEqual(counter.count, 1)
 
-                # assert that the counter did, in fact, increase
-                self.assertTrue(counter.count == 1)
+                    # fire another event which should reuse the previous value
+                    # not evaluate the function again
+                    event_funcs.fire_event(e)
 
-                # fire another event which should reuse the previous value
-                # not evaluate the function again
-                event_funcs.fire_event(e)
+                    # assert that the counter did not, in fact, increase
+                    self.assertEqual(counter.count, 1)
+                
+                # if the init function doesn't require something named "dump"
+                # we can just continue
+                else:
+                    pass
 
-                # assert that the counter did not, in fact, increase
-                self.assertTrue(counter.count == 1)
-
-            # classes without dump aren't part of this test so we move on.
-            except TypeError:
-                pass
+            # other exceptions are issues and should be thrown
+            except Exception as e:
+                raise e
