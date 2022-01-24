@@ -19,7 +19,6 @@ from dbt.contracts.graph.parsed import (
 )
 from dbt.contracts.files import FileHash
 from typing import Generic, TypeVar
-from test.unit.test_events import DummyCacheEvent
 
 # takes in a class and finds any subclasses for it
 def get_all_subclasses(cls):
