@@ -31,8 +31,7 @@ class Lazy(Generic[T]):
     def _typed_eval_f(self) -> T:
         return cast(Callable[[], T], getattr(self, "_f"))()
 
-    # gets the value from memoization or by evaluating the function.
-    # good when the deferred function is pure.
+    # evaluates the function if the value has not been memoized already
     def force(self) -> T:
         if self.memo is not None:
             return self.memo
