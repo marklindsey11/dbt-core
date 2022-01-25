@@ -705,7 +705,7 @@ class DumpBeforeAddGraph(DebugLevel, Cache):
     code: str = "E031"
 
     def message(self) -> str:
-        return f"before adding : {self.dump.value()}"
+        return f"before adding : {self.dump.force()}"
 
 
 @dataclass
@@ -714,7 +714,7 @@ class DumpAfterAddGraph(DebugLevel, Cache):
     code: str = "E032"
 
     def message(self) -> str:
-        return f"after adding: {self.dump.value()}"
+        return f"after adding: {self.dump.force()}"
 
 
 @dataclass
@@ -723,7 +723,7 @@ class DumpBeforeRenameSchema(DebugLevel, Cache):
     code: str = "E033"
 
     def message(self) -> str:
-        return f"before rename: {self.dump.value()}"
+        return f"before rename: {self.dump.force()}"
 
 
 @dataclass
@@ -732,7 +732,7 @@ class DumpAfterRenameSchema(DebugLevel, Cache):
     code: str = "E034"
 
     def message(self) -> str:
-        return f"after rename: {self.dump.value()}"
+        return f"after rename: {self.dump.force()}"
 
 
 @dataclass

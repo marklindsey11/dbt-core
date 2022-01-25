@@ -8,12 +8,13 @@ from typing import Callable, cast, Generic, Optional, TypeVar
 T = TypeVar('T')
 
 
-# A data type for representing lazily evaluated values. Evaluation is explicilty
-# called with either `value` for access to memoization, or `force` to skip
-# memoization.
+# A data type for representing lazily evaluated values. 
+# 
+# usage:
+# x = Lazy.defer(lambda: expensive_fn)
+# y = x.force()
 #
-# inspired by the purescript data type with
-# additional considerations for impurity
+# inspired by the purescript data type
 # https://pursuit.purescript.org/packages/purescript-lazy/5.0.0/docs/Data.Lazy
 @dataclass
 class Lazy(Generic[T]):
@@ -32,14 +33,9 @@ class Lazy(Generic[T]):
 
     # gets the value from memoization or by evaluating the function.
     # good when the deferred function is pure.
-    def value(self) -> T:
+    def force(self) -> T:
         if self.memo is not None:
             return self.memo
         else:
             self.memo = self._typed_eval_f()
             return self.memo
-
-    # forces evaluation skipping the memoization.
-    # necessary for when the deferred function is stateful or impure.
-    def force(self) -> T:
-        return self._typed_eval_f()
