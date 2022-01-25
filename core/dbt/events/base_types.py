@@ -108,6 +108,8 @@ class Event(metaclass=ABCMeta):
             if isinstance(v, Exception) or isinstance(v, BaseException):
                 d[k] = str(v)
             # use memoized version of all lazy values
+            elif isinstance(v, Lazy):
+                d[k] = v.force()
             elif k == '_f' and isinstance(v, Callable):  # type: ignore[arg-type]
                 d[k] = v()
             elif k == 'memo' and v is None:
