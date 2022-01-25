@@ -8,8 +8,8 @@ from typing import Callable, cast, Generic, Optional, TypeVar
 T = TypeVar('T')
 
 
-# A data type for representing lazily evaluated values. 
-# 
+# A data type for representing lazily evaluated values.
+#
 # usage:
 # x = Lazy.defer(lambda: expensive_fn)
 # y = x.force()
