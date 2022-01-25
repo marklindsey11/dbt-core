@@ -455,86 +455,119 @@ class DummyCacheEvent(InfoLevel, Cache):
     def message(self) -> str:
         return f"state: {self.counter.next()}"
 
+# tests that if a cache event uses lazy evaluation for its message
+# creation, the evaluation will not be forced for cache events when
+# running without `--log-cache-events`.
+def skip_cache_event_message_rendering(x: TestCase):
+    # a dummy event that extends `Cache`
+    e = DummyCacheEvent(Counter("some_state"))
 
-class SkipsRenderingCacheEvents(TestCase):
+    # counter of zero means this potentially expensive function
+    # (emulating dump_graph) has never been called
+    x.assertEqual(e.counter.count, 0)
+
+    # call fire_event
+    event_funcs.fire_event(e)
+
+    # assert that the expensive function has STILL not been called
+    x.assertEqual(e.counter.count, 0)
+
+# this test checks that every subclass of `Cache` uses the same lazy evaluation 
+# strategy. This ensures that potentially expensive cache event values are not
+# built unless they are needed for logging purposes. It also checks that these
+# potentially expensive values are cached, and not evaluated more than once.
+def all_cache_events_are_lazy(x):
+    cache_events = get_all_subclasses(Cache)
+    for clazz in cache_events:
+        # this body is only testing subclasses of `Cache` that take a param called "dump"
+
+        # initialize the counter to return a dictionary (emulating dump_graph)
+        counter = Counter(dict())
+
+        # assert that the counter starts at 0
+        x.assertEqual(counter.count, 0)
+
+        # try to create the cache event to use this counter type
+        # fails for cache events that don't have a "dump" param
+        try:
+            clazz()
+        except TypeError as e:
+            # hack that roughly detects attribute names without an instance of the class
+            if 'dump' in str(e):
+                # make the class. If this throws, maybe your class didn't use Lazy when it should have
+                e = clazz(dump = Lazy.defer(lambda: counter.next()))
+
+                # assert that initializing the event with the counter
+                # did not evaluate the lazy value
+                x.assertEqual(counter.count, 0)
+
+                # log an event which should trigger evaluation and up
+                # the counter
+                event_funcs.fire_event(e)
+
+                # assert that the counter increased
+                x.assertEqual(counter.count, 1)
+
+                # fire another event which should reuse the previous value
+                # not evaluate the function again
+                event_funcs.fire_event(e)
+
+                # assert that the counter did not increase
+                x.assertEqual(counter.count, 1)
+            
+            # if the init function doesn't require something named "dump"
+            # we can just continue
+            else:
+                pass
+
+        # other exceptions are issues and should be thrown
+        except Exception as e:
+            raise e
+
+
+class SkipsRenderingCacheEventsTEXT(TestCase):
 
     def setUp(self):
-        pass
+        flags.LOG_FORMAT = 'text'
 
-    # tests that if a cache event uses lazy evaluation for its message
-    # creation, the evaluation will not be forced for cache events when
-    # running without `--log-cache-events`.
-    def test_skip_cache_event_message_rendering(self):
-        # a dummy event that extends `Cache`
-        e = DummyCacheEvent(Counter("some_state"))
-
-        # counter of zero means this potentially expensive function
-        # (emulating dump_graph) has never been called
-        self.assertEqual(e.counter.count, 0)
-
-        # call fire_event
-        event_funcs.fire_event(e)
-
-        # assert that the expensive function has STILL not been called
-        self.assertEqual(e.counter.count, 0)
+    def test_skip_cache_event_message_rendering_TEXT(self):
+        skip_cache_event_message_rendering(self)
 
 
-class TestLazyMemoizationInCacheEvents(TestCase):
+class SkipsRenderingCacheEventsJSON(TestCase):
 
     def setUp(self):
+        flags.LOG_FORMAT = 'json'
+
+    def tearDown(self):
+        flags.LOG_FORMAT = 'text'
+
+    def test_skip_cache_event_message_rendering_JSON(self):
+        skip_cache_event_message_rendering(self)
+    
+
+class TestLazyMemoizationInCacheEventsTEXT(TestCase):
+
+    def setUp(self):
+        flags.LOG_FORMAT = 'text'
         flags.LOG_CACHE_EVENTS = True
 
     def tearDown(self):
         flags.LOG_CACHE_EVENTS = False
 
-    # this test checks that every subclass of `Cache` uses the same lazy evaluation 
-    # strategy. This ensures that potentially expensive cache event values are not
-    # built unless they are needed for logging purposes. It also checks that these
-    # potentially expensive values are cached, and not evaluated more than once.
-    def test_all_cache_events_are_lazy(self):
-        cache_events = get_all_subclasses(Cache)
-        for clazz in cache_events:
-            # this body is only testing subclasses of `Cache` that take a param called "dump"
+    def test_all_cache_events_are_lazy_TEXT(self):
+        all_cache_events_are_lazy(self)
 
-            # initialize the counter to return a dictionary (emulating dump_graph)
-            counter = Counter(dict())
 
-            # assert that the counter starts at 0
-            self.assertEqual(counter.count, 0)
+class TestLazyMemoizationInCacheEventsJSON(TestCase):
 
-            # try to create the cache event to use this counter type
-            # fails for cache events that don't have a "dump" param
-            try:
-                clazz()
-            except TypeError as e:
-                # hack that roughly detects attribute names without an instance of the class
-                if 'dump' in str(e):
-                    # make the class. If this throws, maybe your class didn't use Lazy when it should have
-                    e = clazz(dump = Lazy.defer(lambda: counter.next()))
+    def setUp(self):
+        flags.LOG_FORMAT = 'json'
+        flags.LOG_CACHE_EVENTS = True
 
-                    # assert that initializing the event with the counter
-                    # did not evaluate the lazy value
-                    self.assertEqual(counter.count, 0)
+    def tearDown(self):
+        flags.LOG_FORMAT = 'text'
+        flags.LOG_CACHE_EVENTS = False
 
-                    # log an event which should trigger evaluation and up
-                    # the counter
-                    event_funcs.fire_event(e)
-
-                    # assert that the counter increased
-                    self.assertEqual(counter.count, 1)
-
-                    # fire another event which should reuse the previous value
-                    # not evaluate the function again
-                    event_funcs.fire_event(e)
-
-                    # assert that the counter did not increase
-                    self.assertEqual(counter.count, 1)
-                
-                # if the init function doesn't require something named "dump"
-                # we can just continue
-                else:
-                    pass
-
-            # other exceptions are issues and should be thrown
-            except Exception as e:
-                raise e
+    def test_all_cache_events_are_lazy_JSON(self):
+        all_cache_events_are_lazy(self)
