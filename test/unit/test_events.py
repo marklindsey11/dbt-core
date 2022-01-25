@@ -511,6 +511,7 @@ class TestLazyMemoizationInCacheEvents(TestCase):
                 if 'dump' in str(e):
                     # make the class. If this throws, maybe your class didn't use Lazy when it should have
                     e = clazz(dump = Lazy.defer(lambda: counter.next()))
+
                     # assert that initializing the event with the counter
                     # did not evaluate the lazy value
                     self.assertEqual(counter.count, 0)
