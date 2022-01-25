@@ -520,14 +520,14 @@ class TestLazyMemoizationInCacheEvents(TestCase):
                     # the counter
                     event_funcs.fire_event(e)
 
-                    # assert that the counter did, in fact, increase
+                    # assert that the counter increased
                     self.assertEqual(counter.count, 1)
 
                     # fire another event which should reuse the previous value
                     # not evaluate the function again
                     event_funcs.fire_event(e)
 
-                    # assert that the counter did not, in fact, increase
+                    # assert that the counter did not increase
                     self.assertEqual(counter.count, 1)
                 
                 # if the init function doesn't require something named "dump"
