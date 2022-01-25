@@ -1,6 +1,7 @@
 from abc import ABCMeta, abstractmethod, abstractproperty
 from dataclasses import dataclass
 from datetime import datetime
+from dbt.lazy import Lazy
 import os
 import threading
 from typing import Any, Callable, Optional
