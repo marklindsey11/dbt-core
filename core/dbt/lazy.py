@@ -11,7 +11,7 @@ T = TypeVar('T')
 # A data type for representing lazily evaluated values.
 #
 # usage:
-# x = Lazy.defer(lambda: expensive_fn)
+# x = Lazy.defer(lambda: expensive_fn())
 # y = x.force()
 #
 # inspired by the purescript data type
