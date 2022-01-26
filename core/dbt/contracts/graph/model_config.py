@@ -495,6 +495,7 @@ class TestConfig(NodeAndTestConfig):
 @dataclass
 class EmptySnapshotConfig(NodeConfig):
     materialized: str = 'snapshot'
+    unique_key: Optional[str] = None  # override NodeConfig unique_key definition
 
 
 @dataclass
