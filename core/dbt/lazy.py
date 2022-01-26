@@ -33,8 +33,6 @@ class Lazy(Generic[T]):
 
     # evaluates the function if the value has not been memoized already
     def force(self) -> T:
-        if self.memo is not None:
-            return self.memo
-        else:
+        if self.memo is None:
             self.memo = self._typed_eval_f()
-            return self.memo
+        return self.memo
