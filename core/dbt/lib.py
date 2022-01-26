@@ -8,6 +8,7 @@ RuntimeArgs = namedtuple(
     'RuntimeArgs', 'project_dir profiles_dir single_threaded profile target'
 )
 
+
 def get_dbt_config(project_dir, args=None, single_threaded=False):
     from dbt.config.runtime import RuntimeConfig
     import dbt.adapters.factory
