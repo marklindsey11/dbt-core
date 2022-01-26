@@ -478,6 +478,7 @@ def skip_cache_event_message_rendering(x: TestCase):
 # potentially expensive values are cached, and not evaluated more than once.
 def all_cache_events_are_lazy(x):
     cache_events = get_all_subclasses(Cache)
+    matching_classes = []
     for clazz in cache_events:
         # this body is only testing subclasses of `Cache` that take a param called "dump"
 
@@ -492,8 +493,11 @@ def all_cache_events_are_lazy(x):
         try:
             clazz()
         except TypeError as e:
+            print(clazz)
             # hack that roughly detects attribute names without an instance of the class
             if 'dump' in str(e):
+                matching_classes.append(clazz)
+
                 # make the class. If this throws, maybe your class didn't use Lazy when it should have
                 e = clazz(dump = Lazy.defer(lambda: counter.next()))
 
@@ -523,6 +527,10 @@ def all_cache_events_are_lazy(x):
         # other exceptions are issues and should be thrown
         except Exception as e:
             raise e
+
+    # we should have at least 4 matching classes (raise this threshold if we add more)
+    expected = 4
+    x.assertTrue(len(matching_classes) >= expected, f"\nexpected at least {expected} matching classes.\nfound {len(matching_classes)}: {matching_classes}")
 
 
 class SkipsRenderingCacheEventsTEXT(TestCase):
