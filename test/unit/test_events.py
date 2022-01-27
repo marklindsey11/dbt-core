@@ -528,9 +528,8 @@ def all_cache_events_are_lazy(x):
         except Exception as e:
             raise e
 
-    # we should have at least 4 matching classes (raise this threshold if we add more)
-    expected = 4
-    x.assertTrue(len(matching_classes) >= expected, f"\nexpected at least {expected} matching classes.\nfound {len(matching_classes)}: {matching_classes}")
+    # we should have exactly 4 matching classes (raise this threshold if we add more)
+    x.assertEqual(len(matching_classes), 4, f"matching classes:\n{len(matching_classes)}: {matching_classes}")
 
 
 class SkipsRenderingCacheEventsTEXT(TestCase):
