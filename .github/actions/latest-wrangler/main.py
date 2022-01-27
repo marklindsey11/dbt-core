@@ -35,6 +35,7 @@ if __name__ == "__main__":
             sys.exit(0)
 
     # TODO: verify package meta is "correct"
+    # https://github.com/dbt-labs/dbt-core/issues/4640 
 
     # map versions and tags
     version_tag_map = {

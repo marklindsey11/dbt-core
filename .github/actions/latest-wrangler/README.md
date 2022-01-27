@@ -19,7 +19,6 @@ Plug in the necessary inputs to determine if the container being built should be
 | `minor_latest` | Wether or not the new container should be tagged major.minor.latest |
 
 ## Example workflow
-TODO
 ```yaml
 name: Ship it!
 on: 

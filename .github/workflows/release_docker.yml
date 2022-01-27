@@ -7,9 +7,8 @@
 # **when?**
 # This is triggered manually 
 
-# **TODO**
+# **next steps**
 # - build this into the release workflow (or conversly, break out the different release methods into their own workflow files)
-# - find a workaround for *&^%&*^ing dbt-postgres (currently not supported)
 
 name: Docker release
 
@@ -17,7 +16,7 @@ on:
   workflow_dispatch:
     inputs:
       package:
-       description: The package to release. _One_ of [dbt-core, dbt-redshift, dbt-bigquery, dbt-snowflake, dbt-spark]
+       description: The package to release. _One_ of [dbt-core, dbt-redshift, dbt-bigquery, dbt-snowflake, dbt-spark, dbt-postgres]
        required: true
       version_number:
        description: The release version number (i.e. 1.0.0b1). Do not include `latest` tags or a leading `v`!
@@ -78,7 +77,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push PATCH
+      - name: Build and push MAJOR.MINOR.PATCH tag
         uses: docker/build-push-action@v2
         with:
           file: docker/Dockerfile
@@ -89,7 +88,7 @@ jobs:
           tags: |
             ghcr.io/dbt-labs/${{ github.event.inputs.package }}:${{ github.event.inputs.version_number }}
 
-      - name: Build and push MINOR.latest
+      - name: Build and push MINOR.latest tag
         uses: docker/build-push-action@v2
         if: ${{ needs.get_version_meta.outputs.minor_latest == 'True' }}
         with:
@@ -101,7 +100,7 @@ jobs:
           tags: |
             ghcr.io/dbt-labs/${{ github.event.inputs.package }}:${{ needs.get_version_meta.outputs.major }}.${{ needs.get_version_meta.outputs.minor }}.latest
 
-      - name: Build and push latest
+      - name: Build and push latest tag
         uses: docker/build-push-action@v2
         if: ${{ needs.get_version_meta.outputs.latest == 'True' }}
         with:
