@@ -27,6 +27,17 @@ class BaseExceptionSerialization(SerializationStrategy):
         return (BaseException(value))
 
 
+# TODO this is wrong. I want to call the mashumaro on the underlying type, but idk how.
+class LazySerialization(SerializationStrategy):
+    def serialize(self, value):
+        return value.force()
+
+    # lazy deserialization is generally a bad idea.
+    # errors pop up in very unexpected places, so we just make it strict.
+    def deserialize(self, value):
+        raise Exception("can't deserialize a generic Lazy value")
+
+
 # This class is the equivalent of dbtClassMixin that's used for serialization
 # in other parts of the code. That class did extra things which we didn't want
 # to use for events, so this class is a simpler version of dbtClassMixin.
@@ -38,12 +49,3 @@ class EventSerialization(DataClassDictMixin):
             BaseException: ExceptionSerialization(),
             Lazy: LazySerialization()
         }
-
-
-# TODO this is wrong. I want to call the mashumaro on the underlying type, but idk how.
-class LazySerialization(SerializationStrategy):
-    def serialize(self, value):
-        return serialize(value.force())
-
-    def deserialize(self, value):
-        return Lazy.defer(lambda: deserialize(value))
