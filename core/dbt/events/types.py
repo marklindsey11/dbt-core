@@ -700,7 +700,6 @@ class RenameSchema(DebugLevel, Cache):
 
 @dataclass
 class DumpBeforeAddGraph(DebugLevel, Cache):
-    # large value. delay not necessary since every debug level message is logged anyway.
     dump: Lazy[Dict[str, List[str]]]
     code: str = "E031"
 
