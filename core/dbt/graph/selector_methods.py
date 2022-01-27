@@ -488,9 +488,11 @@ class StateSelectorMethod(SelectorMethod):
         return self.check_macros_modified(new)
 
     @staticmethod
-    def check_modified_factory(compare_method: str) -> Callable:
+    def check_modified_factory(
+        compare_method: str
+    ) -> Callable[[Optional[SelectorTarget], SelectorTarget], bool]:
         # get a function that compares two selector target based on compare method provided
-        def check_modified_things(old: Optional[SelectorTarget], new: SelectorTarget,) -> bool:
+        def check_modified_things(old: Optional[SelectorTarget], new: SelectorTarget) -> bool:
             if hasattr(new, compare_method):
                 # when old body does not exist or old and new are not the same
                 return not old or not getattr(new, compare_method)(old)  # type: ignore
