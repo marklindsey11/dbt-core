@@ -1,3 +1,4 @@
+from dbt.lazy import Lazy
 from mashumaro import DataClassDictMixin
 from mashumaro.config import (
     BaseConfig as MashBaseConfig
@@ -35,4 +36,14 @@ class EventSerialization(DataClassDictMixin):
         serialization_strategy = {
             Exception: ExceptionSerialization(),
             BaseException: ExceptionSerialization(),
+            Lazy: LazySerialization()
         }
+
+
+# TODO this is wrong. I want to call the mashumaro on the underlying type, but idk how.
+class LazySerialization(SerializationStrategy):
+    def serialize(self, value):
+        return serialize(value.force())
+
+    def deserialize(self, value):
+        return Lazy.defer(lambda: deserialize(value))
