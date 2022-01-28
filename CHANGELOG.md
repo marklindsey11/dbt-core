@@ -11,6 +11,7 @@
 - Testing cleanup ([#4496](https://github.com/dbt-labs/dbt-core/pull/4496), [#4509](https://github.com/dbt-labs/dbt-core/pull/4509))
 - Clean up test deprecation warnings ([#3988](https://github.com/dbt-labs/dbt-core/issue/3988), [#4556](https://github.com/dbt-labs/dbt-core/pull/4556))
 - Use mashumaro for serialization in event logging ([#4504](https://github.com/dbt-labs/dbt-core/issue/4504), [#4505](https://github.com/dbt-labs/dbt-core/pull/4505))
+- Drop support for Python 3.7.0 + 3.7.1 ([#4584](https://github.com/dbt-labs/dbt-core/issue/4584), [#4585](https://github.com/dbt-labs/dbt-core/pull/4585))
 
 Contributors:
 - [@NiallRees](https://github.com/NiallRees) ([#4447](https://github.com/dbt-labs/dbt-core/pull/4447))
