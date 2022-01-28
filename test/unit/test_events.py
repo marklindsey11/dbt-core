@@ -5,7 +5,7 @@ from dbt.events.functions import event_to_serializable_dict
 from dbt.events.base_types import NodeInfo
 from dbt.events.types import *
 from dbt.events.test_types import *
-from dbt.events.stubs import _CachedRelation, BaseRelation, _ReferenceKey, ParsedModelNode
+# from dbt.events.stubs import _CachedRelation, BaseRelation, _ReferenceKey, ParsedModelNode
 from dbt.events.base_types import Event, TestLevel, DebugLevel, WarnLevel, InfoLevel, ErrorLevel
 from importlib import reload
 import dbt.events.functions as event_funcs
@@ -18,6 +18,7 @@ from dbt.contracts.graph.parsed import (
     ParsedModelNode, NodeConfig, DependsOn
 )
 from dbt.contracts.files import FileHash
+from mashumaro.types import SerializableType
 from typing import Generic, TypeVar
 
 # takes in a class and finds any subclasses for it
@@ -446,7 +447,7 @@ class TestEventJSONSerialization(TestCase):
 T = TypeVar('T')
 
 @dataclass
-class Counter(Generic[T]):
+class Counter(Generic[T], SerializableType):
     dummy_val: T
     count: int = 0
 
@@ -454,14 +455,23 @@ class Counter(Generic[T]):
         self.count = self.count + 1
         return self.dummy_val
 
+    # mashumaro serializer
+    def _serialize() -> Dict[str, int]:
+        return {'count': count}
+
 
 @dataclass
-class DummyCacheEvent(InfoLevel, Cache):
+class DummyCacheEvent(InfoLevel, Cache, SerializableType):
     code = 'X999'
     counter: Counter
 
     def message(self) -> str:
         return f"state: {self.counter.next()}"
+
+    # mashumaro serializer
+    def _serialize() -> str:
+        return "DummyCacheEvent"
+
 
 # tests that if a cache event uses lazy evaluation for its message
 # creation, the evaluation will not be forced for cache events when

@@ -4,6 +4,7 @@ from mashumaro.config import (
     BaseConfig as MashBaseConfig
 )
 from mashumaro.types import SerializationStrategy
+from typing import Dict, List
 
 
 # The dbtClassMixin serialization class has a DateTime serialization strategy
@@ -27,13 +28,14 @@ class BaseExceptionSerialization(SerializationStrategy):
         return (BaseException(value))
 
 
-# TODO this is wrong. I want to call the mashumaro on the underlying type, but idk how.
-class LazySerialization(SerializationStrategy):
+# this is not really generic. These functions must know about every concrete usage
+# of the generic type and serialize all wrapped types. There is lots of room for
+# runtime errors because we have to match up the types by hand here, and make sure
+# we didn't miss any.
+class LazySerialization1(SerializationStrategy):
     def serialize(self, value):
-        return value.force()
+        return str(value.force())
 
-    # lazy deserialization is generally a bad idea.
-    # errors pop up in very unexpected places, so we just make it strict.
     def deserialize(self, value):
         raise Exception("can't deserialize a generic Lazy value")
 
@@ -47,5 +49,5 @@ class EventSerialization(DataClassDictMixin):
         serialization_strategy = {
             Exception: ExceptionSerialization(),
             BaseException: ExceptionSerialization(),
-            Lazy: LazySerialization()
+            Lazy[Dict[str, List[str]]]: LazySerialization1()
         }
