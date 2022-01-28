@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from dbt.events.serialization import EventSerialization
 import os
 import threading
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Dict
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #

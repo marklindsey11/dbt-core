@@ -28,16 +28,18 @@ class BaseExceptionSerialization(SerializationStrategy):
         return (BaseException(value))
 
 
-# this is not really generic. These functions must know about every concrete usage
-# of the generic type and serialize all wrapped types. There is lots of room for
-# runtime errors because we have to match up the types by hand here, and make sure
-# we didn't miss any.
+# This is an explicit deserializer for the type Lazy[Dict[str, List[str]]]
+# mashumaro does not support composing serialization strategies, so all
+# future uses of Lazy will need to register a unique serialization class like this one.
 class LazySerialization1(SerializationStrategy):
-    def serialize(self, value):
-        return str(value.force())
+    def serialize(self, value) -> Dict[str, List[str]]:
+        return value.force()
 
+    # we _can_ deserialize into a lazy value, but that defers running the deserialization
+    # function till the value is used which can raise errors at very unexpected times.
+    # It's best practice to do strict deserialization unless you're in a very special case.
     def deserialize(self, value):
-        raise Exception("can't deserialize a generic Lazy value")
+        raise Exception("Don't deserialize into a Lazy value. Try just using the value itself.")
 
 
 # This class is the equivalent of dbtClassMixin that's used for serialization
@@ -45,6 +47,7 @@ class LazySerialization1(SerializationStrategy):
 # to use for events, so this class is a simpler version of dbtClassMixin.
 class EventSerialization(DataClassDictMixin):
 
+    # This is where we register serializtion strategies per type.
     class Config(MashBaseConfig):
         serialization_strategy = {
             Exception: ExceptionSerialization(),
